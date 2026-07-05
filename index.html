@@ -915,10 +915,10 @@ function spawnField(){
         motifs.push({t:'moth',x:bx+rand(40,200),y:by+rand(-60,60),vx:rand(-12,-4),
           vy:rand(-9,-2),s:rand(8,13),ph:rand(0,6.28),fs:rand(2,3)});
     }else if(reg===4){                       /* a proper sea of pandas */
-      const nb2=1+(Math.random()*2|0);
+      const nb2=2+(Math.random()*2|0);
       for(let k=0;k<nb2;k++)
-        motifs.push({t:'bamboo',x:bx+rand(0,420),y:by+rand(-140,140),vx:rand(-16,-6),
-          vy:rand(-4,4),s:rand(26,44),ph:rand(0,6.28),fs:rand(.8,1.4)});
+        motifs.push({t:'bamboo',x:bx+rand(0,460),y:by+rand(-150,150),vx:rand(-16,-6),
+          vy:rand(-4,4),s:rand(34,60),ph:rand(0,6.28),fs:rand(.8,1.4)});
       const np=2+(Math.random()*3|0);
       for(let k=0;k<np;k++)
         motifs.push({t:'panda',x:bx+rand(0,520),y:by+rand(-170,170),vx:rand(-26,-6),
@@ -1414,8 +1414,8 @@ function drawLantern(x,y,s,ph){
 }
 function drawBamboo(x,y,s,ph){
   ctx.save();ctx.translate(x,y);ctx.rotate(Math.sin(ph)*.18);
-  ctx.strokeStyle=css(lerpC(TINT,INK,.5),.75);ctx.lineCap='round';
-  ctx.lineWidth=s*.14;
+  ctx.strokeStyle=css(lerpC(TINT,INK,.6),.85);ctx.lineCap='round';
+  ctx.lineWidth=s*.16;
   ctx.beginPath();ctx.moveTo(0,s*1.2);ctx.lineTo(0,-s*1.2);ctx.stroke();
   ctx.lineWidth=1.2;
   for(let k=-1;k<2;k++){ctx.beginPath();ctx.moveTo(-s*.12,k*s*.7);ctx.lineTo(s*.12,k*s*.7);ctx.stroke();}

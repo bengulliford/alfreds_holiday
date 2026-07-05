@@ -123,7 +123,6 @@ body.playing #hint.on{opacity:1}
 </div>
 <div id="title">
   <h1>ALFRED'S HOLIDAY</h1>
-  <div class="sub">a night-glide through deep space</div>
   <div class="go pulse" id="titlego">touch anywhere to begin</div>
   <div class="startrow" id="startrow">
     <button class="sbtn" id="btnContinue"></button>
@@ -604,7 +603,7 @@ let wx=0,wy=0,vx=235,vy=0,pxOff=0,holding=false,diving=false,fasting=false,slowi
     holdTime=0,introHintDone=false;
 let combo=0,comboT=0,lumens=0,now=0;
 let glow=1,deathT=0,lowT=0,deadM=0,shockT=0,shockHue=0,astCd=0;
-let gravHintShown=false,revHintShown=false;
+let gravHintShown=false,revHintShown=false,titanHintShown=false;
 let best=0,totalLumens=0,beatBest=false,chkpt=0;
 try{best=+localStorage.getItem('drift.best')||0;
     totalLumens=+localStorage.getItem('drift.lumens')||0;
@@ -781,11 +780,23 @@ function spawnField(){
     const mNow=camX/42,reg=regAt(camX);
     const dMul=Math.min([1,.8,1.15,1,1.3,.9,1.05,.55,1.15,1.2,1.25][reg]*(1+Math.min(mNow/2600,.55)),1.6);
     const sMul=[1,1.1,.9,1.2,1,1.05,1.25,.8,1.1,1.3,1.2][reg]*(1+Math.min(mNow/3200,.45));
-    const p={x:nextPlanetX,y:wy+rand(-H*.85,H*.85),R:Math.min(rand(55,115)*sMul,180),
-             col:PHUES[pCount%PHUES.length],ringed:Math.random()<.45,
-             ph:rand(-.5,-.15),near:false,rev:Math.random()<REV[reg]};
+    let p,rcs,gap;
+    if(reg===6&&Math.random()<.22){
+      /* a titan world of the peaks — too heavy to orbit, wide enough to block the way */
+      p={x:nextPlanetX,y:wy+rand(-H*.3,H*.3),R:rand(360,460),
+         col:PHUES[pCount%PHUES.length],ringed:Math.random()<.7,
+         ph:rand(-.5,-.15),near:false,rev:false,titan:true};
+      rcs=[[p.R*1.18,14,.25],[p.R*1.6,9,-.14]];
+      gap=p.R*4+rand(1200,2000);
+    }else{
+      p={x:nextPlanetX,y:wy+rand(-H*.85,H*.85),R:Math.min(rand(55,115)*sMul,180),
+         col:PHUES[pCount%PHUES.length],ringed:Math.random()<.45,
+         ph:rand(-.5,-.15),near:false,rev:Math.random()<REV[reg]};
+      rcs=[[p.R*1.3,8,.4],[p.R*2.25,5,-.22]];
+      gap=rand(1900,3200)/dMul;
+    }
     planets.push(p);pCount++;
-    [[p.R*1.3,8,.4],[p.R*2.25,5,-.22]].forEach((rc,ri)=>{
+    rcs.forEach((rc,ri)=>{
       const a0=rand(0,6.28);
       for(let k=0;k<rc[1];k++){
         const a=a0+k/rc[1]*6.283;
@@ -795,7 +806,7 @@ function spawnField(){
           ob:{cx:p.x,cy:p.y,rad:rc[0],ang:a,spd:rc[2]}});
       }
     });
-    nextPlanetX+=rand(1900,3200)/dMul;
+    nextPlanetX+=gap;
   }
   /* a comet, once in a long while */
   while(nextCometX<camX*.09+W*1.4){
@@ -1021,7 +1032,9 @@ function update(dt){
       if(d<minD){minD=d;nearP=p;}
       if(!p.near&&d<p.R*3.4){
         p.near=true;AU.captureCue();
-        if(p.rev&&!revHintShown){revHintShown=true;
+        if(p.titan&&!titanHintShown){titanHintShown=true;
+          showHint('a titan world — far too heavy to orbit; fly around it',5200);}
+        else if(p.rev&&!revHintShown){revHintShown=true;
           showHint('this world pushes back — press into the wind to reach its rings',5200);}
         else if(!gravHintShown){gravHintShown=true;
           showHint('gravity has you — ride it round, thrust to bend away, never touch the surface',5200);}
@@ -1030,15 +1043,15 @@ function update(dt){
         if(Math.hypot(vx,vy)>cruise+70)AU.gliss();   /* a true slingshot exit */
       }
     }
-    const inField=nearP&&minD<nearP.R*6;
-    const steps=(nearP&&minD<nearP.R*4)?3:1,sdt=dt/steps;
+    const inField=nearP&&minD<nearP.R*(nearP.titan?3:6);
+    const steps=(nearP&&minD<nearP.R*(nearP.titan?2:4))?3:1,sdt=dt/steps;
     for(let s=0;s<steps;s++){
       let ax=0,ay=0;
       for(const p of planets){
         if(p.dead)continue;
         const dx=p.x-wx,dy=p.y-wy,d2=dx*dx+dy*dy,d=Math.sqrt(d2);
-        if(d<p.R*6){
-          const a=Math.min(2000*p.R*p.R/(d2+p.R*p.R*.06),2600)*(p.rev?-1:1);
+        if(d<p.R*(p.titan?3:6)){
+          const a=Math.min((p.titan?520:2000)*p.R*p.R/(d2+p.R*p.R*.06),2600)*(p.rev?-1:1);
           ax+=a*dx/d;ay+=a*dy/d;
         }
       }
@@ -1054,12 +1067,18 @@ function update(dt){
         if(p.dead)continue;
         const margin=p.R+4+(sizeF-1)*10;
         if(Math.hypot(wx-p.x,wy-p.y)<margin){
-          if(buffStar>0){                /* starlight shatters worlds */
+          if(buffStar>0){                /* starlight shatters worlds into light */
             p.dead=true;
             for(const o of orbs)if(o.ob&&o.ob.cx===p.x&&o.ob.cy===p.y)o.free=true;
+            const n2=Math.min(24,10+(p.R/25|0));
+            for(let k2=0;k2<n2;k2++){
+              const a2=k2/n2*6.283,rr2=p.R*rand(.35,1.15);
+              orbs.push({x:p.x+Math.cos(a2)*rr2,y:p.y+Math.sin(a2)*rr2,
+                r:k2%7?9:15,big:!(k2%7),ph:rand(0,6.28),dead:false,free:true,
+                ni:clamp(1+(k2%9),0,11)});
+            }
             burst(p.x,p.y,true);burst(p.x,p.y,true);burst(wx,wy,true);
             rings.push({x:p.x,y:p.y,r:p.R*.5,max:p.R*4,a0:.6,col:p.col,spd:520,w:3});
-            lumens+=8;totalLumens+=8;
             AU.pluck(38,{gain:.2,tau:1.1,soft:true});AU.fanfare();
           }else{die('planet');break;}
         }
@@ -2010,10 +2029,10 @@ function render(){
     ctx.globalCompositeOperation='source-over';
     ctx.strokeStyle=css(P.moon,.055);ctx.lineWidth=1;
     for(const p of planets){
-      const sx=p.x-camX,sy=p.y-camY;
-      if(sx<-p.R*6||sx>W+p.R*6)continue;
+      const sx=p.x-camX,sy=p.y-camY,fR=p.R*(p.titan?3:6);
+      if(sx<-fR||sx>W+fR)continue;
       ctx.setLineDash(p.rev?[5,7]:[]);
-      ctx.beginPath();ctx.arc(sx,sy,p.R*6,0,6.283);ctx.stroke();
+      ctx.beginPath();ctx.arc(sx,sy,fR,0,6.283);ctx.stroke();
     }
     ctx.setLineDash([]);
     ctx.globalCompositeOperation='lighter';
@@ -2144,10 +2163,10 @@ function render(){
     }
     ctx.strokeStyle=css(INK,.12);ctx.lineWidth=1;
     for(const p of planets){
-      const sx=p.x-camX,sy=p.y-camY;
-      if(sx<-p.R*6||sx>W+p.R*6)continue;
+      const sx=p.x-camX,sy=p.y-camY,fR=p.R*(p.titan?3:6);
+      if(sx<-fR||sx>W+fR)continue;
       ctx.setLineDash(p.rev?[5,7]:[]);
-      ctx.beginPath();ctx.arc(sx,sy,p.R*6,0,6.283);ctx.stroke();
+      ctx.beginPath();ctx.arc(sx,sy,fR,0,6.283);ctx.stroke();
     }
     ctx.setLineDash([]);
     for(const o of orbs){

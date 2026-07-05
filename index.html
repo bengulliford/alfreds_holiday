@@ -177,47 +177,47 @@ const REGIONS=[
  {name:'The Amber Drift',
   n:{skyT:[8,5,24],skyM:[24,14,52],skyB:[54,26,60],neb1:[255,180,90],neb2:[190,90,160],
      aur1:[90,230,190],aur2:[255,190,110],orb:[255,210,130],moon:[255,225,170],amb:[255,205,140],starA:.8},
-  i:{tint:[150,118,78]}},
+  i:{tint:[168,124,64]}},
  {name:'The Glass Deep',
   n:{skyT:[2,7,22],skyM:[6,24,54],skyB:[10,48,80],neb1:[80,200,255],neb2:[60,120,220],
      aur1:[90,255,220],aur2:[90,160,255],orb:[120,230,255],moon:[200,228,255],amb:[140,215,255],starA:.6},
-  i:{tint:[88,102,124]}},
+  i:{tint:[80,104,138]}},
  {name:'The Rose Veil',
   n:{skyT:[16,4,26],skyM:[46,12,56],skyB:[86,24,80],neb1:[255,120,180],neb2:[255,150,110],
      aur1:[255,140,200],aur2:[255,190,140],orb:[255,150,190],moon:[255,200,220],amb:[255,160,200],starA:.7},
-  i:{tint:[140,90,105]}},
+  i:{tint:[168,86,112]}},
  {name:'The Violet Reach',
   n:{skyT:[10,4,30],skyM:[30,12,70],skyB:[60,24,110],neb1:[150,110,255],neb2:[80,140,255],
      aur1:[140,120,255],aur2:[100,200,255],orb:[170,150,255],moon:[210,200,255],amb:[180,160,255],starA:.9},
-  i:{tint:[104,96,132]}},
+  i:{tint:[110,92,156]}},
  {name:'The Sea of Pandas',
   n:{skyT:[3,10,18],skyM:[8,34,40],skyB:[12,60,58],neb1:[90,230,170],neb2:[120,220,230],
      aur1:[110,255,180],aur2:[130,230,255],orb:[140,255,200],moon:[200,255,230],amb:[150,240,210],starA:.65},
-  i:{tint:[86,110,96]}},
+  i:{tint:[72,124,88]}},
  {name:"Minx's Cavern",
   n:{skyT:[8,4,14],skyM:[22,12,30],skyB:[44,22,52],neb1:[150,80,160],neb2:[80,50,120],
      aur1:[180,120,220],aur2:[120,80,200],orb:[220,160,255],moon:[210,180,230],amb:[190,140,230],starA:.5},
-  i:{tint:[104,86,100]}},
+  i:{tint:[96,70,92]}},
  {name:'The Wandering Peaks',
   n:{skyT:[6,8,18],skyM:[18,26,44],skyB:[48,58,76],neb1:[150,180,210],neb2:[210,180,140],
      aur1:[160,200,230],aur2:[230,200,150],orb:[210,225,255],moon:[235,235,245],amb:[200,215,240],starA:.7},
-  i:{tint:[96,104,116]}},
+  i:{tint:[122,142,168]}},
  {name:'The Stone River',
-  n:{skyT:[7,7,10],skyM:[18,18,24],skyB:[38,36,44],neb1:[140,135,150],neb2:[190,160,120],
+  n:{skyT:[10,8,6],skyM:[26,20,14],skyB:[52,40,28],neb1:[170,130,90],neb2:[120,100,110],
      aur1:[170,170,190],aur2:[220,190,150],orb:[255,200,120],moon:[220,215,225],amb:[200,195,205],starA:.9},
-  i:{tint:[92,90,94]}},
+  i:{tint:[110,92,70]}},
  {name:'Rainbow Paradise',
   n:{skyT:[14,6,30],skyM:[40,18,70],skyB:[90,30,90],neb1:[255,110,150],neb2:[90,200,255],
      aur1:[120,255,170],aur2:[255,160,90],orb:[255,220,160],moon:[255,240,220],amb:[255,200,230],starA:1.3},
-  i:{tint:[170,110,140]}},
+  i:{tint:[185,105,135]}},
  {name:'The Visitors',
   n:{skyT:[3,8,6],skyM:[8,22,16],skyB:[16,44,34],neb1:[90,255,150],neb2:[130,110,230],
      aur1:[110,255,170],aur2:[160,120,255],orb:[150,255,190],moon:[190,255,210],amb:[140,240,190],starA:1.1},
-  i:{tint:[80,116,92]}},
+  i:{tint:[70,112,80]}},
  {name:'The Big Mamma Jamma',
   n:{skyT:[12,8,26],skyM:[36,22,58],skyB:[84,48,86],neb1:[255,170,110],neb2:[130,160,255],
      aur1:[255,200,120],aur2:[160,220,255],orb:[255,215,150],moon:[255,235,210],amb:[255,215,170],starA:1.2},
-  i:{tint:[128,104,110]}}
+  i:{tint:[150,96,96]}}
 ];
 REGIONS.forEach((rg,ri)=>rg.n.rb=ri===8?1:ri===10?.5:0);   /* paradise floods; the finale glows */
 const REGION_M=700,RN=REGIONS.length;
@@ -237,13 +237,16 @@ const REGMOTIFS=[['crane','kite'],['koi','lily'],['petal','blossom'],['lantern',
 const WASHC=[[193,75,50],[180,200,220],[235,140,160],[200,140,120],[224,176,96],
              [200,190,215],[236,236,245],[150,145,150],[250,180,95],[120,220,160],
              [255,200,120]];
-let P={},TINT=PAPER,rI0=0,rI1=1,rB=0;
+let P={},TINT=PAPER,TAMT=.18,rI0=0,rI1=1,rB=0;
+/* how deeply each level's colour soaks the paper */
+const TINTAMT=[.18,.22,.22,.22,.22,.32,.14,.26,.18,.24,.22];
 function blendPal(cx){
   const pos=cx/42/REGION_M,i0=((Math.floor(pos))%RN+RN)%RN,i1=(i0+1)%RN;
   const f=pos-Math.floor(pos),b=smooth(clamp((f-.86)/.14,0,1));
   const A=REGIONS[i0].n,B=REGIONS[i1].n;
   for(const k in A)P[k]=Array.isArray(A[k])?lerpC(A[k],B[k],b):A[k]+(B[k]-A[k])*b;
   TINT=lerpC(REGIONS[i0].i.tint,REGIONS[i1].i.tint,b);
+  TAMT=TINTAMT[i0]+(TINTAMT[i1]-TINTAMT[i0])*b;
   /* slow colour breathing — the painting shifts as you watch */
   const br=.5+.5*Math.sin(now*.03);
   P.orb=lerpC(P.orb,P.neb1,.15*br);
@@ -327,7 +330,23 @@ function makeNebInk(tint){
   return s;
 }
 function nebFor(i){if(!nebCache[i])nebCache[i]=makeNeb(REGIONS[i].n.neb1,REGIONS[i].n.neb2);return nebCache[i]}
-function nebForInk(i){if(!nebCacheI[i])nebCacheI[i]=makeNebInk(REGIONS[i].i.tint);return nebCacheI[i]}
+function makeNebRainbowInk(){
+  const s=document.createElement('canvas');s.width=s.height=512;
+  const c=s.getContext('2d');
+  for(let k=0;k<12;k++){
+    const col=lerpC(hueRGB(k/12),PAPER,.25);
+    const x=rand(40,472),y=rand(40,472),r=rand(80,220);
+    const g=c.createRadialGradient(x,y,0,x,y,r);
+    g.addColorStop(0,css(col,rand(.1,.16)));g.addColorStop(1,css(col,0));
+    c.fillStyle=g;c.fillRect(0,0,512,512);
+  }
+  return s;
+}
+function nebForInk(i){
+  if(!nebCacheI[i])
+    nebCacheI[i]=REGIONS[i].n.rb>=1?makeNebRainbowInk():makeNebInk(REGIONS[i].i.tint);
+  return nebCacheI[i];
+}
 function drawNebLayer(spr,par,alpha,scale){
   if(alpha<=0.004)return;
   const s=Math.max(W,H)*scale;
@@ -1830,10 +1849,18 @@ function drawSkyBody(x,y,t){
     dot(x,y,r*1.8,col,.18);
     ctx.fillStyle=css(col,.85);
     ctx.beginPath();ctx.arc(x,y,r,0,6.283);ctx.fill();
-    if(t===8){ctx.strokeStyle=css(hueRGB(now*.12),.55);ctx.lineWidth=3;}
-    else if(t===4){ctx.strokeStyle=css([110,170,120],.4);ctx.lineWidth=2;}
-    else{ctx.strokeStyle=css(INK,.16);ctx.lineWidth=1.5;}
-    ctx.beginPath();ctx.arc(x,y,r*1.3,0,6.283);ctx.stroke();
+    if(t===8){
+      for(let k=0;k<5;k++){                  /* colours pulse outward from the sun */
+        const q=(now*.25+k/5)%1;
+        ctx.strokeStyle=css(hueRGB(q+now*.05),.55*(1-q));
+        ctx.lineWidth=3;
+        ctx.beginPath();ctx.arc(x,y,r*(1.12+q*1.4),0,6.283);ctx.stroke();
+      }
+    }else{
+      if(t===4){ctx.strokeStyle=css([110,170,120],.4);ctx.lineWidth=2;}
+      else{ctx.strokeStyle=css(INK,.16);ctx.lineWidth=1.5;}
+      ctx.beginPath();ctx.arc(x,y,r*1.3,0,6.283);ctx.stroke();
+    }
   }else if(t===1){                          /* silver moon over the glass deep */
     const col=[205,212,222];
     dot(x,y,R*1.9,col,.15);
@@ -2036,8 +2063,15 @@ function render(){
     }
   }else{
     /* ---- ink & paper ---- */
-    ctx.fillStyle=css(lerpC(PAPER,TINT,.16));ctx.fillRect(0,0,W,H);
+    ctx.fillStyle=css(lerpC(PAPER,TINT,TAMT));ctx.fillRect(0,0,W,H);
     ctx.globalAlpha=.65;ctx.fillStyle=paperPat;ctx.fillRect(0,0,W,H);ctx.globalAlpha=1;
+    /* in paradise, the paper itself takes the rainbow */
+    if(P.rb>.02){
+      const rg2=ctx.createLinearGradient(0,0,W,H*.4);
+      for(let k=0;k<=6;k++)
+        rg2.addColorStop(k/6,css(lerpC(hueRGB(k/6+now*.02),PAPER,.2),.15*P.rb));
+      ctx.fillStyle=rg2;ctx.fillRect(0,0,W,H);
+    }
     /* the sky-body's light swells at mid-level and rests at the borders */
     if(skyW>0){
       const sg=ctx.createRadialGradient(skyX,skyY,0,skyX,skyY,H*.95);

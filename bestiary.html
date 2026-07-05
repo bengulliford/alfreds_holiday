@@ -166,10 +166,48 @@ function drawNarwhal(ctx,x,y,s,ph,TINT){
   ctx.quadraticCurveTo(0,s*.2,-s*.8,0);ctx.closePath();ctx.fill();
   ctx.beginPath();ctx.moveTo(-s*.78,0);ctx.lineTo(-s*.98,-s*.14);
   ctx.lineTo(-s*.86,0);ctx.lineTo(-s*.96,s*.12);ctx.closePath();ctx.fill();
-  ctx.strokeStyle=css(INK,.6);ctx.lineWidth=Math.max(1.2,s*.025);
-  ctx.beginPath();ctx.moveTo(s*.6,-s*.1);ctx.lineTo(s*1.15,-s*.22);ctx.stroke();
+  ctx.strokeStyle=css(INK,.6);ctx.lineWidth=Math.max(1.2,s*.028);
+  ctx.beginPath();ctx.moveTo(s*.5,-s*.07);ctx.lineTo(s*1.12,-s*.24);ctx.stroke();
+  ctx.fillStyle=css(lerpC(TINT,INK,.5),.5);
+  ctx.beginPath();ctx.ellipse(s*.05,-s*.2,s*.14,s*.06,-.6,0,6.283);ctx.fill();
+  ctx.beginPath();ctx.ellipse(-s*.05,s*.12,s*.16,s*.07,.5+Math.sin(ph*2)*.15,0,6.283);ctx.fill();
   ctx.fillStyle=css(VERM,.7);
   ctx.beginPath();ctx.arc(s*.46,-s*.02,Math.max(1.2,s*.018),0,6.283);ctx.fill();
+  ctx.restore();
+}
+function drawWeird(ctx,x,y,s,ph){
+  ctx.save();ctx.translate(x,y+Math.sin(ph*.8)*5);
+  ctx.fillStyle=css(lerpC([150,220,160],INK,.25),.55);
+  ctx.beginPath();
+  for(let k=0;k<=10;k++){
+    const a=k/10*6.283,rr=s*(.34+.14*Math.sin(a*3+ph*1.4)+.08*Math.sin(a*7-ph));
+    if(k)ctx.lineTo(Math.cos(a)*rr,Math.sin(a)*rr*.8);
+    else ctx.moveTo(Math.cos(a)*rr,Math.sin(a)*rr*.8);
+  }
+  ctx.closePath();ctx.fill();
+  ctx.strokeStyle=css(INK,.5);ctx.lineWidth=1.2;ctx.stroke();
+  for(let k=0;k<3;k++){
+    const a=-2.2+k*1.05,L=s*(.5+.18*k),wob=Math.sin(ph*1.6+k*2)*.3;
+    const ex=Math.cos(a+wob)*L,ey=Math.sin(a+wob)*L*.9-s*.1;
+    ctx.strokeStyle=css(INK,.55);ctx.lineWidth=1.4;
+    ctx.beginPath();ctx.moveTo(Math.cos(a)*s*.2,Math.sin(a)*s*.16);
+    ctx.quadraticCurveTo(ex*.6,ey*.6-s*.1,ex,ey);ctx.stroke();
+    ctx.fillStyle=css(lerpC(PAPER,[255,255,255],.3),.9);
+    ctx.beginPath();ctx.arc(ex,ey,s*.1,0,6.283);ctx.fill();
+    if(Math.sin(ph*1.1+k*2.4)>-.6){
+      ctx.fillStyle=css(VERM,.9);
+      ctx.beginPath();ctx.arc(ex+Math.cos(ph+k)*s*.03,ey+Math.sin(ph+k)*s*.03,s*.05,0,6.283);ctx.fill();
+    }
+    ctx.strokeStyle=css(INK,.5);ctx.lineWidth=1;
+    ctx.beginPath();ctx.arc(ex,ey,s*.1,0,6.283);ctx.stroke();
+  }
+  for(let k=0;k<4;k++){
+    const tx=-s*.2+k*s*.13;
+    ctx.strokeStyle=css(INK,.4);ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(tx,s*.25);
+    ctx.quadraticCurveTo(tx+Math.sin(ph*2+k)*s*.1,s*.5,tx+Math.sin(ph*2+k+1)*s*.08,s*.7);
+    ctx.stroke();
+  }
   ctx.restore();
 }
 function drawManatee(ctx,x,y,s,ph,TINT){
@@ -181,6 +219,10 @@ function drawManatee(ctx,x,y,s,ph,TINT){
   ctx.beginPath();ctx.ellipse(s*.1,s*.3,s*.14,s*.07,.6+Math.sin(ph*2)*.2,0,6.283);ctx.fill();
   ctx.fillStyle=css(VERM,.7);
   ctx.beginPath();ctx.arc(s*.58,-s*.1,Math.max(1.2,s*.02),0,6.283);ctx.fill();
+  ctx.strokeStyle=css(INK,.75);ctx.lineCap='round';
+  ctx.lineWidth=Math.max(1.4,s*.045);
+  ctx.beginPath();ctx.moveTo(s*.6,s*.06);ctx.lineTo(s*.56,s*.24);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(s*.68,s*.05);ctx.lineTo(s*.66,s*.22);ctx.stroke();
   ctx.restore();
 }
 function drawSquid(ctx,x,y,s,ph){
@@ -318,6 +360,7 @@ const TILES=[
  ['Space manatee','The Stone River',(c,t)=>drawManatee(c,90,80,62,t*.7,[92,90,94]),[92,90,94]],
  ['Squid visitor','The Visitors',(c,t)=>drawSquid(c,90,76,32,t*1.4),[80,116,92]],
  ['The watcher','The Visitors',(c,t)=>drawEye(c,90,78,32,t*1.1),[80,116,92]],
+ ['The stranger','The Visitors',(c,t)=>drawWeird(c,90,74,34,t*1.2),[80,116,92]],
  ['Water lily','among the stars',(c,t)=>drawLily(c,90,86,28,t*.7,[88,102,124]),[88,102,124]],
  ['Visitor','The Visitors',(c,t)=>drawJelly(c,90,76,30,t*1.6),[80,116,92]],
  ['Saucer','The Visitors',(c,t)=>drawSaucer(c,90,80,26,t*2),[80,116,92]]

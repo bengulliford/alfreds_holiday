@@ -213,21 +213,30 @@ const REGIONS=[
  {name:'The Visitors',
   n:{skyT:[3,8,6],skyM:[8,22,16],skyB:[16,44,34],neb1:[90,255,150],neb2:[130,110,230],
      aur1:[110,255,170],aur2:[160,120,255],orb:[150,255,190],moon:[190,255,210],amb:[140,240,190],starA:1.1},
-  i:{tint:[80,116,92]}}
+  i:{tint:[80,116,92]}},
+ {name:'The Big Mamma Jamma',
+  n:{skyT:[12,8,26],skyM:[36,22,58],skyB:[84,48,86],neb1:[255,170,110],neb2:[130,160,255],
+     aur1:[255,200,120],aur2:[160,220,255],orb:[255,215,150],moon:[255,235,210],amb:[255,215,170],starA:1.2},
+  i:{tint:[128,104,110]}}
 ];
-REGIONS.forEach((rg,ri)=>rg.n.rb=ri===8?1:0);   /* rainbow paradise floods with colour */
+REGIONS.forEach((rg,ri)=>rg.n.rb=ri===8?1:ri===10?.5:0);   /* paradise floods; the finale glows */
 const REGION_M=700,RN=REGIONS.length;
 function regAt(cx){const p2=Math.floor(cx/42/REGION_M);return((p2%RN)+RN)%RN;}
 const PHUES=[[255,190,110],[120,220,255],[255,140,190],[160,140,255],[130,240,190],
              [255,230,170],[240,120,120],[180,220,255]];
-const REV=[0,0,0,1,0,0,0,.15,0,.7];   /* chance a region's worlds push instead of pull */
-const REGMOTIFS=[['crane'],['koi','lily'],['petal','blossom'],['lantern'],
-  ['bamboo','panda'],['cat'],['mount'],['whale','narwhal','manatee'],
+const REV=[0,0,0,1,0,0,0,.15,0,.7,.3];   /* chance a region's worlds push instead of pull */
+const ALLM=['crane','kite','koi','lily','petal','blossom','lantern','moth','bamboo','panda',
+  'cat','bat','ghost','eyes','mount','hawk','whale','narwhal','manatee','flow',
+  'rpetal','jelly','saucer','squid','eye','weird'];
+const REGMOTIFS=[['crane','kite'],['koi','lily'],['petal','blossom'],['lantern','moth'],
+  ['bamboo','panda'],['cat','bat','ghost','eyes'],['mount','hawk'],
+  ['whale','narwhal','manatee','flow'],
   ['rpetal','koi','panda','cat','lily','lantern','blossom','petal'],
-  ['jelly','saucer','squid','eye']];
+  ['jelly','saucer','squid','eye','weird'],ALLM];
 /* each level's sky-body casts its own wash */
 const WASHC=[[193,75,50],[180,200,220],[235,140,160],[200,140,120],[224,176,96],
-             [200,190,215],[236,236,245],[150,145,150],[250,180,95],[120,220,160]];
+             [200,190,215],[236,236,245],[150,145,150],[250,180,95],[120,220,160],
+             [255,200,120]];
 let P={},TINT=PAPER,rI0=0,rI1=1,rB=0;
 function blendPal(cx){
   const pos=cx/42/REGION_M,i0=((Math.floor(pos))%RN+RN)%RN,i1=(i0+1)%RN;
@@ -346,7 +355,7 @@ const AU={
            {b:41,pad:[57,60,62,65,69]}],
    progs:[[0,1,4,3],[0,2,1,3],[2,1,4,3],[0,4,2,3]]}
  ],
- REGPACK:[0,0,1,1,0,1,0,1,0,1],   /* dusk regions turn minor */
+ REGPACK:[0,0,1,1,0,1,0,1,0,1,0],   /* dusk regions turn minor; the finale sings major */
  S(){return this.PACKS[this.REGPACK[regAt(camX)]].scale;},
  f(m){return 440*Math.pow(2,(m-69)/12)},
  init(){
@@ -419,7 +428,7 @@ const AU={
  },
  playChord(ch,nx,t,bi,dur){
   /* an ambient string bed and nothing more — every melody is played by you */
-  const padMul=[1,1.15,.9,1.05,1,.95,1,.9,1.15,1.05][bi];
+  const padMul=[1,1.15,.9,1.05,1,.95,1,.9,1.15,1.05,1.1][bi];
   ch.pad.forEach(m=>this.padVoice(m,t,dur,padMul,Math.min(3,dur*.45)));
   if(this.energy>.25){                 /* your playing colours the chords upward */
     ch.pad.slice(-2).forEach(m2=>
@@ -751,8 +760,8 @@ function spawnField(){
   while(nextPlanetX<camX+W*2.2){
     /* deeper into the drift: larger worlds, packed closer, per-region character */
     const mNow=camX/42,reg=regAt(camX);
-    const dMul=Math.min([1,.8,1.15,1,1.3,.9,1.05,.55,1.15,1.2][reg]*(1+Math.min(mNow/2600,.55)),1.6);
-    const sMul=[1,1.1,.9,1.2,1,1.05,1.25,.8,1.1,1.3][reg]*(1+Math.min(mNow/3200,.45));
+    const dMul=Math.min([1,.8,1.15,1,1.3,.9,1.05,.55,1.15,1.2,1.25][reg]*(1+Math.min(mNow/2600,.55)),1.6);
+    const sMul=[1,1.1,.9,1.2,1,1.05,1.25,.8,1.1,1.3,1.2][reg]*(1+Math.min(mNow/3200,.45));
     const p={x:nextPlanetX,y:wy+rand(-H*.85,H*.85),R:Math.min(rand(55,115)*sMul,180),
              col:PHUES[pCount%PHUES.length],ringed:Math.random()<.45,
              ph:rand(-.5,-.15),near:false,rev:Math.random()<REV[reg]};
@@ -798,14 +807,22 @@ function spawnField(){
     nextPowX+=rand(2600,4200);
   }
   /* nature motifs ride the middle distance — each region keeps its own company */
-  while(nextMotifX<camX*.55+W*1.6&&motifs.length<90){
+  while(nextMotifX<camX*.55+W*1.6&&motifs.length<110){
     const reg=regAt(camX);
-    const bx=nextMotifX,by=camY*.55+rand(H*.08,H*.8),roll=Math.random();
-    if(reg===0||roll<.12){                   /* cranes migrate everywhere */
+    spawnMotifSet(reg===10?(Math.random()*10)|0:reg,   /* the finale borrows everyone */
+      nextMotifX,camY*.55+rand(H*.08,H*.8));
+    nextMotifX+=rand(1000,2000);
+  }
+  function spawnMotifSet(reg,bx,by){
+    const roll=Math.random();
+    if(reg===0||roll<.1){                    /* cranes and kites on the amber wind */
       const n=Math.random()<.35?1:3+(Math.random()*4|0),s0=rand(22,40);
       for(let k=0;k<n;k++)
         motifs.push({t:'crane',x:bx+k*54+rand(-8,8),y:by+Math.abs(k-(n-1)/2)*26+rand(-4,4),
           vx:rand(-20,-8),vy:0,s:s0*rand(.85,1.1),ph:rand(0,6.28),fs:rand(1.5,2.3)});
+      if(reg===0&&Math.random()<.4)
+        motifs.push({t:'kite',x:bx+rand(120,300),y:by+rand(-100,100),vx:rand(-14,-6),
+          vy:rand(-3,3),s:rand(16,26),ph:rand(0,6.28),fs:rand(.8,1.4)});
     }else if(reg===1){                       /* koi and lilies in the glass deep */
       const n=1+(Math.random()*3|0);
       for(let k=0;k<n;k++)
@@ -819,11 +836,14 @@ function spawnField(){
       for(let k=0;k<n;k++)
         motifs.push({t:Math.random()<.25?'blossom':'petal',x:bx+rand(0,260),y:by+rand(-120,120),
           vx:rand(-14,-4),vy:rand(8,20),s:rand(4,9),ph:rand(0,6.28),fs:rand(1.2,2.6)});
-    }else if(reg===3){                       /* lanterns rise where gravity pushes */
+    }else if(reg===3){                       /* lanterns rise, moths adore them */
       const n=1+(Math.random()*3|0);
       for(let k=0;k<n;k++)
         motifs.push({t:'lantern',x:bx+k*80+rand(-20,20),y:by+rand(-60,60),
           vx:rand(-8,-2),vy:rand(-16,-7),s:rand(14,24),ph:rand(0,6.28),fs:rand(.7,1.3)});
+      if(Math.random()<.55)
+        motifs.push({t:'moth',x:bx+rand(40,200),y:by+rand(-60,60),vx:rand(-12,-4),
+          vy:rand(-9,-2),s:rand(8,13),ph:rand(0,6.28),fs:rand(2,3)});
     }else if(reg===4){                       /* the sea of pandas */
       const n=1+(Math.random()*2|0);
       for(let k=0;k<n;k++)
@@ -835,18 +855,37 @@ function spawnField(){
       if(Math.random()<.25)
         motifs.push({t:'panda',x:bx+rand(160,300),y:by+rand(-120,120),vx:rand(-9,-4),
           vy:rand(-4,4),s:rand(14,22),ph:rand(0,6.28),fs:rand(.4,.8)});
-    }else if(reg===5){                       /* minx's cavern — cats adrift */
+    }else if(reg===5){                       /* minx's cavern — cats, bats, and worse */
       const n=1+(Math.random()*2|0);
       for(let k=0;k<n;k++)
         motifs.push({t:'cat',x:bx+k*110+rand(-20,20),y:by+rand(-80,80),vx:rand(-8,-3),
           vy:rand(-3,3),s:rand(18,32),ph:rand(0,6.28),fs:rand(.5,1)});
-    }else if(reg===6){                       /* wandering peaks, goats aboard */
+      if(Math.random()<.6){
+        const nb=2+(Math.random()*3|0);
+        for(let k=0;k<nb;k++)
+          motifs.push({t:'bat',x:bx+rand(60,260),y:by+rand(-120,120),vx:rand(-24,-10),
+            vy:rand(-8,8),s:rand(9,15),ph:rand(0,6.28),fs:rand(1,1.6)});
+      }
+      if(Math.random()<.3)
+        motifs.push({t:'ghost',x:bx+rand(80,240),y:by+rand(-90,90),vx:rand(-7,-3),
+          vy:rand(-4,2),s:rand(18,30),ph:rand(0,6.28),fs:rand(.7,1.2)});
+      if(Math.random()<.45)
+        motifs.push({t:'eyes',x:bx+rand(60,280),y:by+rand(-110,110),vx:rand(-7,-4),
+          vy:0,s:rand(10,16),ph:rand(0,6.28),fs:rand(.5,.9)});
+    }else if(reg===6){                       /* wandering peaks — goats and hawks */
       motifs.push({t:'mount',x:bx,y:by+rand(-40,60),vx:rand(-5,-2),vy:rand(-1.5,1.5),
         s:rand(60,120),ph:rand(0,6.28),fs:rand(.15,.3),goat:Math.random()<.7});
       if(Math.random()<.4)
         motifs.push({t:'mount',x:bx+rand(200,420),y:by+rand(-140,140),vx:rand(-5,-2),
           vy:rand(-1.5,1.5),s:rand(40,80),ph:rand(0,6.28),fs:rand(.15,.3),goat:Math.random()<.4});
-    }else if(reg===7){                       /* the stone river — gentle giants among rocks */
+      if(Math.random()<.5)
+        motifs.push({t:'hawk',x:bx+rand(80,300),y:by+rand(-140,-40),vx:rand(-16,-8),
+          vy:rand(-2,2),s:rand(14,22),ph:rand(0,6.28),fs:rand(.5,.9)});
+    }else if(reg===7){                       /* the stone river — a current with giants */
+      const nf=1+(Math.random()*2|0);
+      for(let k=0;k<nf;k++)
+        motifs.push({t:'flow',x:bx+k*180,y:by+rand(-100,100),vx:rand(-6,-2),
+          vy:rand(-1,1),s:rand(30,60),ph:rand(0,6.28),fs:rand(.8,1.4)});
       if(Math.random()<.3){
         const gt=['whale','narwhal','manatee'][(Math.random()*3)|0];
         motifs.push({t:gt,x:bx,y:by+rand(-60,60),vx:rand(-12,-6),vy:rand(-2,2),
@@ -864,14 +903,13 @@ function spawnField(){
     }else{                                   /* the visitors, in several shapes */
       const n=1+(Math.random()*3|0);
       for(let k=0;k<n;k++)
-        motifs.push({t:['jelly','jelly','squid','eye'][(Math.random()*4)|0],
+        motifs.push({t:['jelly','squid','eye','weird'][(Math.random()*4)|0],
           x:bx+k*90+rand(-20,20),y:by+rand(-90,90),vx:rand(-10,-4),
           vy:rand(-6,6),s:rand(16,30),ph:rand(0,6.28),fs:rand(1,1.8)});
       if(Math.random()<.4)
         motifs.push({t:'saucer',x:bx+rand(100,300),y:by+rand(-120,120),vx:rand(-16,-7),
           vy:rand(-4,4),s:rand(16,26),ph:rand(0,6.28),fs:rand(1.5,2.5)});
     }
-    nextMotifX+=rand(1000,2000);
   }
   /* the stone river runs thick with asteroids */
   if(regAt(camX)===7){
@@ -1129,7 +1167,7 @@ function update(dt){
     p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=Math.pow(.4,dt);p.vy*=Math.pow(.4,dt);
   }
   const re=blendPal(camX);
-  const VY=[-7,-26,17,-4,12,-9,-6,3,-14,6][re];
+  const VY=[-7,-26,17,-4,12,-9,-6,3,-14,6,-5][re];
   while(ambs.length<60){
     const l=rand(4,9);
     ambs.push({x:camX*.85+rand(0,W*1.4),y:camY*.85+rand(-40,H+40),vx:rand(-8,4),vy:VY+rand(-4,4),
@@ -1292,7 +1330,7 @@ function drawLantern(x,y,s,ph){
   ctx.restore();
 }
 function drawBamboo(x,y,s,ph){
-  ctx.save();ctx.translate(x,y);ctx.rotate(Math.sin(ph)*.08);
+  ctx.save();ctx.translate(x,y);ctx.rotate(Math.sin(ph)*.18);
   ctx.strokeStyle=css(lerpC(TINT,INK,.5),.75);ctx.lineCap='round';
   ctx.lineWidth=s*.14;
   ctx.beginPath();ctx.moveTo(0,s*1.2);ctx.lineTo(0,-s*1.2);ctx.stroke();
@@ -1408,12 +1446,11 @@ function drawNarwhal(x,y,s,ph){
   ctx.quadraticCurveTo(0,s*.2,-s*.8,0);ctx.closePath();ctx.fill();
   ctx.beginPath();ctx.moveTo(-s*.78,0);ctx.lineTo(-s*.98,-s*.14);
   ctx.lineTo(-s*.86,0);ctx.lineTo(-s*.96,s*.12);ctx.closePath();ctx.fill();
-  ctx.strokeStyle=css(INK,.6);ctx.lineWidth=Math.max(1.2,s*.025);
-  ctx.beginPath();ctx.moveTo(s*.6,-s*.1);ctx.lineTo(s*1.15,-s*.22);ctx.stroke();
-  ctx.lineWidth=1;
-  for(let k=0;k<3;k++){const u=.68+k*.14;
-    ctx.beginPath();ctx.moveTo(s*u,-s*(.115+.026*k)-2);
-    ctx.lineTo(s*(u+.05),-s*(.115+.026*k)+2);ctx.stroke();}
+  ctx.strokeStyle=css(INK,.6);ctx.lineWidth=Math.max(1.2,s*.028);
+  ctx.beginPath();ctx.moveTo(s*.5,-s*.07);ctx.lineTo(s*1.12,-s*.24);ctx.stroke();  /* tusk, rooted */
+  ctx.fillStyle=css(lerpC(TINT,INK,.5),.5);                                        /* fins */
+  ctx.beginPath();ctx.ellipse(s*.05,-s*.2,s*.14,s*.06,-.6,0,6.283);ctx.fill();
+  ctx.beginPath();ctx.ellipse(-s*.05,s*.12,s*.16,s*.07,.5+Math.sin(ph*2)*.15,0,6.283);ctx.fill();
   ctx.fillStyle=css(VERM,.7);
   ctx.beginPath();ctx.arc(s*.46,-s*.02,Math.max(1.2,s*.018),0,6.283);ctx.fill();
   ctx.restore();
@@ -1427,8 +1464,10 @@ function drawManatee(x,y,s,ph){
   ctx.beginPath();ctx.ellipse(s*.1,s*.3,s*.14,s*.07,.6+Math.sin(ph*2)*.2,0,6.283);ctx.fill();
   ctx.fillStyle=css(VERM,.7);
   ctx.beginPath();ctx.arc(s*.58,-s*.1,Math.max(1.2,s*.02),0,6.283);ctx.fill();
-  ctx.strokeStyle=css(INK,.5);ctx.lineWidth=1;
-  ctx.beginPath();ctx.moveTo(s*.66,s*.02);ctx.lineTo(s*.72,s*.03);ctx.stroke();
+  ctx.strokeStyle=css(INK,.75);ctx.lineCap='round';           /* walrus tusks */
+  ctx.lineWidth=Math.max(1.4,s*.045);
+  ctx.beginPath();ctx.moveTo(s*.6,s*.06);ctx.lineTo(s*.56,s*.24);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(s*.68,s*.05);ctx.lineTo(s*.66,s*.22);ctx.stroke();
   ctx.restore();
 }
 function drawSquid(x,y,s,ph){
@@ -1517,6 +1556,121 @@ function drawAst(a,sx,sy){
   }else{
     ctx.fillStyle=css(lerpC(P.neb2,[10,10,14],.75),.95);ctx.fill();
     ctx.strokeStyle=css(P.moon,.3);ctx.lineWidth=1.2;ctx.stroke();
+  }
+  ctx.restore();
+}
+function drawKite(x,y,s,ph){
+  ctx.save();ctx.translate(x,y);ctx.rotate(Math.sin(ph)*.16);
+  ctx.fillStyle=css(VERM,.6);
+  ctx.beginPath();ctx.moveTo(0,-s*.6);ctx.lineTo(s*.42,0);ctx.lineTo(0,s*.6);
+  ctx.lineTo(-s*.42,0);ctx.closePath();ctx.fill();
+  ctx.strokeStyle=css(INK,.6);ctx.lineWidth=1.2;ctx.stroke();
+  ctx.beginPath();ctx.moveTo(0,-s*.6);ctx.lineTo(0,s*.6);
+  ctx.moveTo(-s*.42,0);ctx.lineTo(s*.42,0);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(0,s*.6);
+  for(let k=1;k<5;k++)
+    ctx.lineTo(Math.sin(ph*2+k)*s*.18*(k%2?1:-1),s*(.6+k*.22));
+  ctx.stroke();
+  ctx.restore();
+}
+function drawMoth(x,y,s,ph){
+  const fl=Math.sin(ph*6);
+  ctx.save();ctx.translate(x,y+Math.sin(ph)*6);
+  ctx.fillStyle=css(lerpC(PAPER,[255,250,230],.5),.85);
+  ctx.beginPath();ctx.ellipse(-s*.3,0,s*.34,s*.2*(.5+.5*Math.abs(fl)),-.4*fl,0,6.283);ctx.fill();
+  ctx.beginPath();ctx.ellipse(s*.3,0,s*.34,s*.2*(.5+.5*Math.abs(fl)),.4*fl,0,6.283);ctx.fill();
+  ctx.strokeStyle=css(INK,.6);ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(0,-s*.18);ctx.lineTo(0,s*.18);ctx.stroke();
+  ctx.fillStyle=css(VERM,.7);
+  ctx.beginPath();ctx.arc(0,-s*.2,s*.06,0,6.283);ctx.fill();
+  ctx.restore();
+}
+function drawBat(x,y,s,ph){
+  const fl=Math.sin(ph*7);
+  ctx.save();ctx.translate(x,y+Math.sin(ph*1.3)*5);
+  ctx.fillStyle=css(INK,.8);
+  ctx.beginPath();ctx.arc(0,0,s*.16,0,6.283);ctx.fill();
+  for(const sgn of[1,-1]){
+    ctx.beginPath();ctx.moveTo(0,0);
+    ctx.quadraticCurveTo(sgn*s*.3,-s*(.3+.25*fl),sgn*s*.62,-s*(.1+.3*fl));
+    ctx.quadraticCurveTo(sgn*s*.4,s*.06-s*.1*fl,0,s*.06);
+    ctx.closePath();ctx.fill();
+  }
+  ctx.fillStyle=css(VERM,.8);
+  ctx.beginPath();ctx.arc(-s*.05,-s*.04,Math.max(.8,s*.03),0,6.283);ctx.fill();
+  ctx.beginPath();ctx.arc(s*.05,-s*.04,Math.max(.8,s*.03),0,6.283);ctx.fill();
+  ctx.restore();
+}
+function drawGhost(x,y,s,ph){
+  ctx.save();ctx.translate(x,y+Math.sin(ph)*6);
+  ctx.fillStyle=css(lerpC(PAPER,[255,255,255],.4),.55);
+  ctx.beginPath();ctx.arc(0,-s*.15,s*.4,Math.PI,0);
+  for(let k=0;k<=6;k++)
+    ctx.lineTo(s*.4-k*s*.133,s*.35+Math.sin(ph*2+k)*s*.08*(k%2?1:-1));
+  ctx.closePath();ctx.fill();
+  ctx.strokeStyle=css(INK,.35);ctx.lineWidth=1.2;ctx.stroke();
+  ctx.fillStyle=css(INK,.8);
+  ctx.beginPath();ctx.arc(-s*.14,-s*.16,s*.05,0,6.283);ctx.fill();
+  ctx.beginPath();ctx.arc(s*.14,-s*.16,s*.05,0,6.283);ctx.fill();
+  ctx.restore();
+}
+function drawEyesPair(x,y,s,ph){
+  const blink=Math.sin(ph*.7)>-.85?1:.12;
+  ctx.fillStyle=css(VERM,.85);
+  ctx.beginPath();ctx.ellipse(x-s*.3,y,s*.14,s*.14*blink,0,0,6.283);ctx.fill();
+  ctx.beginPath();ctx.ellipse(x+s*.3,y,s*.14,s*.14*blink,0,0,6.283);ctx.fill();
+}
+function drawHawk(x,y,s,ph){
+  ctx.save();ctx.translate(x,y);ctx.rotate(Math.sin(ph*.5)*.1);
+  ctx.strokeStyle=css(INK,.7);ctx.lineCap='round';ctx.lineWidth=Math.max(1.2,s*.08);
+  ctx.beginPath();ctx.moveTo(-s,0);
+  ctx.quadraticCurveTo(-s*.4,-s*.28,0,0);
+  ctx.quadraticCurveTo(s*.4,-s*.28,s,0);ctx.stroke();
+  ctx.restore();
+}
+function drawFlow(x,y,s,ph){
+  ctx.strokeStyle=css(lerpC(TINT,INK,.35),.4);ctx.lineWidth=1.6;ctx.lineCap='round';
+  for(let k=0;k<3;k++){
+    ctx.beginPath();
+    for(let i2=0;i2<=8;i2++){
+      const fx=x+i2*s*.25,fy=y+k*s*.18+Math.sin(ph+i2*.8+k)*s*.08;
+      if(i2)ctx.lineTo(fx,fy);else ctx.moveTo(fx,fy);
+    }
+    ctx.stroke();
+  }
+}
+function drawWeird(x,y,s,ph){
+  ctx.save();ctx.translate(x,y+Math.sin(ph*.8)*5);
+  ctx.fillStyle=css(lerpC([150,220,160],INK,.25),.55);
+  ctx.beginPath();
+  for(let k=0;k<=10;k++){
+    const a=k/10*6.283,rr=s*(.34+.14*Math.sin(a*3+ph*1.4)+.08*Math.sin(a*7-ph));
+    if(k)ctx.lineTo(Math.cos(a)*rr,Math.sin(a)*rr*.8);
+    else ctx.moveTo(Math.cos(a)*rr,Math.sin(a)*rr*.8);
+  }
+  ctx.closePath();ctx.fill();
+  ctx.strokeStyle=css(INK,.5);ctx.lineWidth=1.2;ctx.stroke();
+  for(let k=0;k<3;k++){
+    const a=-2.2+k*1.05,L=s*(.5+.18*k),wob=Math.sin(ph*1.6+k*2)*.3;
+    const ex=Math.cos(a+wob)*L,ey=Math.sin(a+wob)*L*.9-s*.1;
+    ctx.strokeStyle=css(INK,.55);ctx.lineWidth=1.4;
+    ctx.beginPath();ctx.moveTo(Math.cos(a)*s*.2,Math.sin(a)*s*.16);
+    ctx.quadraticCurveTo(ex*.6,ey*.6-s*.1,ex,ey);ctx.stroke();
+    ctx.fillStyle=css(lerpC(PAPER,[255,255,255],.3),.9);
+    ctx.beginPath();ctx.arc(ex,ey,s*.1,0,6.283);ctx.fill();
+    if(Math.sin(ph*1.1+k*2.4)>-.6){
+      ctx.fillStyle=css(VERM,.9);
+      ctx.beginPath();ctx.arc(ex+Math.cos(ph+k)*s*.03,ey+Math.sin(ph+k)*s*.03,s*.05,0,6.283);ctx.fill();
+    }
+    ctx.strokeStyle=css(INK,.5);ctx.lineWidth=1;
+    ctx.beginPath();ctx.arc(ex,ey,s*.1,0,6.283);ctx.stroke();
+  }
+  for(let k=0;k<4;k++){
+    const tx=-s*.2+k*s*.13;
+    ctx.strokeStyle=css(INK,.4);ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(tx,s*.25);
+    ctx.quadraticCurveTo(tx+Math.sin(ph*2+k)*s*.1,s*.5,tx+Math.sin(ph*2+k+1)*s*.08,s*.7);
+    ctx.stroke();
   }
   ctx.restore();
 }
@@ -1640,12 +1794,36 @@ function drawMotifs(){
     else if(b.t==='eye')drawEye(sx,sy,b.s,b.ph);
     else if(b.t==='saucer')drawSaucer(sx,sy,b.s,b.ph);
     else if(b.t==='rpetal')drawRPetal(sx,sy,b.s,b.ph);
+    else if(b.t==='kite')drawKite(sx,sy,b.s,b.ph);
+    else if(b.t==='moth')drawMoth(sx,sy,b.s,b.ph);
+    else if(b.t==='bat')drawBat(sx,sy,b.s,b.ph);
+    else if(b.t==='ghost')drawGhost(sx,sy,b.s,b.ph);
+    else if(b.t==='eyes')drawEyesPair(sx,sy,b.s,b.ph);
+    else if(b.t==='hawk')drawHawk(sx,sy,b.s,b.ph);
+    else if(b.t==='flow')drawFlow(sx,sy,b.s,b.ph);
+    else if(b.t==='weird')drawWeird(sx,sy,b.s,b.ph);
     else drawLily(sx,sy,b.s,b.ph);
   }
 }
-function drawSkyBody(x,y){
-  /* one crossing per level — each region hangs its own art in the sky */
-  const t=rI0,R=H*.06;
+function drawSkies(){
+  /* one crossing per level; the finale hosts a parade of every sky */
+  if(rI0===10){
+    const rf=(((camX/42/REGION_M)%1)+1)%1,sf=3.34,st=.26;
+    for(let k=0;k<10;k++){
+      const fk=rf*sf-k*st;
+      if(fk<=0||fk>=1)continue;
+      drawSkyBody(W*1.12-fk*W*1.24,H*.34-Math.sin(fk*Math.PI)*H*.16,k);
+    }
+  }else{
+    const rf=(((camX/42/REGION_M)%1)+1)%1;
+    const x=W*1.12-rf*W*1.24;
+    const y=rI0===3?H*.52-rf*H*.36:H*.34-Math.sin(rf*Math.PI)*H*.16;
+    if(x>-W*.25&&x<W*1.25)drawSkyBody(x,y,rI0);
+  }
+}
+function drawSkyBody(x,y,t){
+  /* each region hangs its own art in the sky */
+  const R=H*.078;
   if(t===0||t===4||t===6||t===8){          /* suns: vermilion, bamboo-gold, cold, ringed */
     const col=t===0?VERM:t===4?[224,176,96]:t===6?[236,236,245]:[250,180,95];
     const r=t===6?R*.7:R;
@@ -1761,15 +1939,13 @@ function render(){
       drawPlanetN(sx,sy,gp.R,gp.col,gp.ringed,gp.ph,.55);
     }
     ctx.globalCompositeOperation='lighter';
-    /* the level's sky-body crosses once per region; comets pass behind */
-    if(skyX>-W*.25&&skyX<W*1.25){
-      ctx.globalCompositeOperation='source-over';
-      const inkSave=INK,tintSave=TINT;
-      INK=lerpC(P.moon,[255,255,255],.25);TINT=lerpC(P.neb1,[44,44,66],.35);
-      drawSkyBody(skyX,skyY);
-      INK=inkSave;TINT=tintSave;
-      ctx.globalCompositeOperation='lighter';
-    }
+    /* the level's sky crosses with you; comets pass behind */
+    ctx.globalCompositeOperation='source-over';
+    const inkSv2=INK,tintSv2=TINT;
+    INK=lerpC(P.moon,[255,255,255],.25);TINT=lerpC(P.neb1,[44,44,66],.35);
+    drawSkies();
+    INK=inkSv2;TINT=tintSv2;
+    ctx.globalCompositeOperation='lighter';
     for(const cm of comets){
       const sx=cm.x-camX*.09,sy=cm.y-camY*.09;
       if(sx<-260||sx>W+260)continue;
@@ -1884,8 +2060,8 @@ function render(){
     ctx.globalAlpha=1;
     drawNebLayer(nebForInk(rI0),.05,(1-rB)*(.64+.22*nebBr),1.7);
     if(rB>0)drawNebLayer(nebForInk(rI1),.05,rB*(.64+.22*nebBr),1.7);
-    /* the level's sky-body, crossing with you */
-    if(skyX>-W*.25&&skyX<W*1.25)drawSkyBody(skyX,skyY);
+    /* the level's sky, crossing with you */
+    drawSkies();
     for(const cm of comets){
       const sx=cm.x-camX*.09,sy=cm.y-camY*.09;
       if(sx<-260||sx>W+260)continue;

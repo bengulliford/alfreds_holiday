@@ -882,11 +882,16 @@ function spawnField(){
     nextPowX+=rand(2600,4200);
   }
   /* nature motifs ride the middle distance — each region keeps its own company */
-  while(nextMotifX<camX*.55+W*1.6&&motifs.length<110){
+  while(nextMotifX<camX*.55+W*1.6&&motifs.length<(regAt(camX)===10?200:110)){
     const reg=regAt(camX);
-    spawnMotifSet(reg===10?(Math.random()*10)|0:reg,   /* the finale borrows everyone */
-      nextMotifX,camY*.55+rand(H*.08,H*.8));
-    nextMotifX+=reg===4?rand(550,1100):rand(1000,2000);
+    if(reg===10){                                      /* the finale is a festival */
+      spawnMotifSet((Math.random()*10)|0,nextMotifX,camY*.55+rand(H*.08,H*.8));
+      spawnMotifSet((Math.random()*10)|0,nextMotifX+rand(120,400),camY*.55+rand(H*.08,H*.8));
+      nextMotifX+=rand(420,800);
+    }else{
+      spawnMotifSet(reg,nextMotifX,camY*.55+rand(H*.08,H*.8));
+      nextMotifX+=reg===4?rand(550,1100):rand(1000,2000);
+    }
   }
   function spawnMotifSet(reg,bx,by){
     const roll=Math.random();

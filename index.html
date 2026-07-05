@@ -604,6 +604,7 @@ let wx=0,wy=0,vx=235,vy=0,pxOff=0,holding=false,diving=false,fasting=false,slowi
 let combo=0,comboT=0,lumens=0,now=0;
 let glow=1,deathT=0,lowT=0,deadM=0,shockT=0,shockHue=0,astCd=0;
 let gravHintShown=false,revHintShown=false,titanHintShown=false;
+let runChkpt=0;   /* where THIS run resumes — a fresh run stays fresh */
 let best=0,totalLumens=0,beatBest=false,chkpt=0;
 try{best=+localStorage.getItem('drift.best')||0;
     totalLumens=+localStorage.getItem('drift.lumens')||0;
@@ -671,6 +672,7 @@ function startGame(cont){
   AU.init();
   if(AU.ctx&&AU.ctx.state==='suspended')AU.ctx.resume();
   const M=(cont&&chkpt>0)?chkpt*REGION_M:0;
+  runChkpt=Math.floor(M/REGION_M);
   if(M>0){elVeil.classList.add('on');setTimeout(()=>elVeil.classList.remove('on'),160);}
   seedRun(M);
   state='play';
@@ -681,7 +683,7 @@ function startGame(cont){
 }
 function pressStart(){
   if(state==='title'){startGame(true);return false;}
-  if(state==='dead'){if(deathT>1.1)resetRun(chkpt*REGION_M);return true;}
+  if(state==='dead'){if(deathT>1.1)resetRun(runChkpt*REGION_M);return true;}
   return false;
 }
 window.addEventListener('pointerdown',e=>{pressStart();});
@@ -1007,6 +1009,7 @@ function seedRun(M){
 }
 function resetRun(M){
   seedRun(M||0);
+  runChkpt=Math.floor((M||0)/REGION_M);
   state='play';deathT=0;lumens=0;
   elOver.classList.remove('show');
   AU.resetMel();
@@ -1227,6 +1230,7 @@ function update(dt){
   if(reAbs!==lastRe){
     lastRe=reAbs;
     if(state==='play'){
+      runChkpt=reAbs;                      /* this run now resumes here */
       const nri=((reAbs%RN)+RN)%RN;
       toast(REGIONS[nri].name);AU.bell();
       /* each region keeps its own company — stragglers bow out */

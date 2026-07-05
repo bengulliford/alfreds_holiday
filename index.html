@@ -361,7 +361,7 @@ function drawNebLayer(spr,par,alpha,scale){
 const AU={
  started:false,muted:false,ctx:null,master:null,conv:null,delay:null,
  padLP:null,noiseBuf:null,windG:null,windLP:null,
- chordI:0,nextT:0,melIdx:1,melDir:1,energy:0,
+ chordI:0,nextT:0,melIdx:1,melDir:1,energy:0,spook:false,
  PACKS:[
   {scale:[62,64,66,69,71,74,76,78,81,83,86,88],   /* D major pentatonic — daylight pack */
    chords:[{b:38,pad:[57,61,64,66,71]},{b:35,pad:[57,62,64,66,69]},
@@ -440,6 +440,17 @@ const AU={
       this.chordI++;this.nextT+=dur;
     }
     this.energy*=.975;
+    /* minx's cavern breathes differently — low wind, drips, distant tolls */
+    const spk=regAt(camX)===5;
+    if(spk!==this.spook){
+      this.spook=spk;
+      this.windLP.frequency.setTargetAtTime(spk?170:240,ct,2);
+      this.windG.gain.setTargetAtTime(spk?.034:.02,ct,2);
+    }
+    if(spk&&Math.random()<.04)
+      this.pluck(this.S()[9+(Math.random()*3|0)],{gain:.035,tau:.9,when:ct+rand(0,.8),bend:true});
+    if(spk&&Math.random()<.02)
+      this.pluck(38,{gain:.1,tau:1.6,when:ct+rand(0,.5),soft:true});
   },150);
   this.started=true;
   const t0=c.currentTime;
@@ -447,7 +458,7 @@ const AU={
  },
  playChord(ch,nx,t,bi,dur){
   /* an ambient string bed and nothing more — every melody is played by you */
-  const padMul=[1,1.15,.9,1.05,1,.95,1,.9,1.15,1.05,1.1][bi];
+  const padMul=[1,1.15,.9,1.05,1,.6,1,.9,1.15,1.05,1.1][bi];
   ch.pad.forEach(m=>this.padVoice(m,t,dur,padMul,Math.min(3,dur*.45)));
   if(this.energy>.25){                 /* your playing colours the chords upward */
     ch.pad.slice(-2).forEach(m2=>
@@ -481,8 +492,8 @@ const AU={
   vg.gain.setValueAtTime(0,t);
   vg.gain.linearRampToValueAtTime(f*.0045,t+2.8);
   vib.connect(vg);
-  const os=[];
-  [rand(-9,-4),rand(4,9)].forEach(dt=>{
+  const os=[],dtw=this.spook?16:9,dtn=this.spook?7:4;
+  [rand(-dtw,-dtn),rand(dtn,dtw)].forEach(dt=>{
     const o=c.createOscillator();o.type='sawtooth';o.frequency.value=f;o.detune.value=dt;
     vg.connect(o.frequency);
     o.connect(g);o.start(t);o.stop(t+dur+5);os.push(o);
@@ -529,8 +540,9 @@ const AU={
   else if(hf!=null)this.melIdx=clamp(Math.round(this.melIdx*.55+hf*11*.45),0,11);
   this.energy=Math.min(1,this.energy+.07);
   const s=this.S();
-  const i=this.melIdx,ct=this.ctx.currentTime,v=.12+Math.min(combo,15)*.005;
-  const r=Math.random();let t0=ct;
+  const i=this.melIdx,ct=this.ctx.currentTime,
+        v=(.12+Math.min(combo,15)*.005)*(this.spook?.85:1);
+  const r=this.spook?Math.random()*.49:Math.random();let t0=ct;
   if(r<.22&&i>0){                       /* grace slide into the note */
     this.pluck(s[i-1],{gain:v*.35,tau:.16,when:ct});
     t0=ct+.07;
@@ -585,8 +597,8 @@ const AU={
  },
  setWind(h){
   if(!this.started)return;const ct=this.ctx.currentTime;
-  this.windG.gain.setTargetAtTime(h?.05:.02,ct,.7);
-  this.windLP.frequency.setTargetAtTime(h?520:240,ct,.9);
+  this.windG.gain.setTargetAtTime(h?.05:(this.spook?.034:.02),ct,.7);
+  this.windLP.frequency.setTargetAtTime(h?520:(this.spook?170:240),ct,.9);
  },
  setMute(m2){
   this.muted=m2;

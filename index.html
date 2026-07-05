@@ -226,11 +226,11 @@ const PHUES=[[255,190,110],[120,220,255],[255,140,190],[160,140,255],[130,240,19
              [255,230,170],[240,120,120],[180,220,255]];
 const REV=[0,0,0,1,0,0,0,.15,0,.7,.3];   /* chance a region's worlds push instead of pull */
 const ALLM=['crane','kite','koi','lily','petal','blossom','lantern','moth','bamboo','panda',
-  'cat','bat','ghost','eyes','mount','hawk','whale','narwhal','manatee','flow',
+  'cat','bat','ghost','eyes','mount','hawk','whale','narwhal','manatee','flow','serpent',
   'rpetal','jelly','saucer','squid','eye','weird'];
 const REGMOTIFS=[['crane','kite'],['koi','lily'],['petal','blossom'],['lantern','moth'],
   ['bamboo','panda'],['cat','bat','ghost','eyes'],['mount','hawk'],
-  ['whale','narwhal','manatee','flow'],
+  ['whale','narwhal','manatee','flow','serpent'],
   ['rpetal','koi','panda','cat','lily','lantern','blossom','petal'],
   ['jelly','saucer','squid','eye','weird'],ALLM];
 /* each level's sky-body casts its own wash */
@@ -836,7 +836,7 @@ function spawnField(){
     }else{
       p={x:nextPlanetX,y:wy+rand(-H*.85,H*.85),R:Math.min(rand(55,115)*sMul,180),
          col:PHUES[pCount%PHUES.length],ringed:Math.random()<.45,
-         ph:rand(-.5,-.15),near:false,rev:Math.random()<REV[reg]};
+         ph:rand(-.5,-.15),near:false,rev:Math.random()<REV[reg],sq:reg===7};
       rcs=[[p.R*1.3,8,.4],[p.R*2.25,5,-.22]];
       gap=rand(1900,3200)/dMul;
     }
@@ -969,6 +969,9 @@ function spawnField(){
         motifs.push({t:gt,x:bx,y:by+rand(-60,60),vx:rand(-12,-6),vy:rand(-2,2),
           s:gt==='manatee'?rand(60,100):rand(110,190),ph:rand(0,6.28),fs:rand(.3,.6)});
       }
+      if(Math.random()<.5)
+        motifs.push({t:'serpent',x:bx+rand(60,300),y:by+rand(-80,80),vx:rand(-24,-12),
+          vy:rand(-2,2),s:rand(60,110),ph:rand(0,6.28),fs:rand(1.2,2)});
     }else if(reg===8){                       /* rainbow paradise — everything, in colour */
       const n=6+(Math.random()*5|0);
       for(let k=0;k<n;k++)
@@ -1327,26 +1330,37 @@ function ringArc(sx,sy,R,col,tilt,a0,a1,dim){
   ctx.beginPath();ctx.ellipse(0,0,R*1.45,R*.4,0,a0,a1);ctx.stroke();
   ctx.restore();
 }
-function drawPlanetN(sx,sy,R,col,ringed,tilt,dim,rev){
+function drawPlanetN(sx,sy,R,col,ringed,tilt,dim,rev,sq){
   ctx.globalCompositeOperation='lighter';
   dot(sx,sy,R*2,col,.28*dim);
   ctx.globalCompositeOperation='source-over';
   if(ringed)ringArc(sx,sy,R,col,tilt,Math.PI,6.283,dim);
+  ctx.save();
+  let cx2=sx,cy2=sy;
+  if(sq){ctx.translate(sx,sy);ctx.rotate(tilt*2+now*.04);cx2=0;cy2=0;}
   let g;
   if(rev){                       /* hollow worlds that push — dark heart, lit rim */
-    g=ctx.createRadialGradient(sx,sy,R*.15,sx,sy,R);
+    g=ctx.createRadialGradient(cx2,cy2,R*.15,cx2,cy2,R);
     g.addColorStop(0,css(lerpC(col,[4,3,12],.8),.95));
     g.addColorStop(.72,css(lerpC(col,[10,8,26],.5),.95));
     g.addColorStop(1,css(lerpC(col,[255,255,255],.4),.98));
   }else{
-    g=ctx.createRadialGradient(sx-R*.38,sy-R*.38,R*.12,sx,sy,R);
+    g=ctx.createRadialGradient(cx2-R*.38,cy2-R*.38,R*.12,cx2,cy2,R);
     g.addColorStop(0,css(lerpC(col,[255,255,255],.3),.95));
     g.addColorStop(.5,css(lerpC(col,[12,10,28],.45),.95));
     g.addColorStop(1,css(lerpC(col,[6,5,16],.8),.98));
   }
   ctx.globalAlpha=dim;
-  ctx.fillStyle=g;ctx.beginPath();ctx.arc(sx,sy,R,0,6.283);ctx.fill();
-  ctx.globalAlpha=1;
+  ctx.fillStyle=g;
+  if(sq){                        /* the stone river carves in right angles */
+    const h2=R*.72;
+    ctx.fillRect(cx2-h2,cy2-h2,h2*2,h2*2);
+    ctx.strokeStyle=css(lerpC(col,[255,255,255],.25),.35);ctx.lineWidth=2;
+    ctx.strokeRect(cx2-h2,cy2-h2,h2*2,h2*2);
+  }else{
+    ctx.beginPath();ctx.arc(cx2,cy2,R,0,6.283);ctx.fill();
+  }
+  ctx.globalAlpha=1;ctx.restore();
   if(ringed)ringArc(sx,sy,R,col,tilt,0,Math.PI,dim);
   ctx.globalCompositeOperation='lighter';
 }
@@ -1778,6 +1792,22 @@ function drawWeird(x,y,s,ph){
   }
   ctx.restore();
 }
+function drawSerpent(x,y,s,ph){
+  ctx.save();ctx.translate(x,y);
+  ctx.fillStyle=css(lerpC(TINT,INK,.55),.6);
+  for(let k=0;k<=8;k++){
+    const bx2=-s*.9+k*s*.2,by2=Math.sin(ph*1.2+k*.85)*s*.2,rr=s*(.05+.11*(k/8));
+    ctx.beginPath();ctx.arc(bx2,by2,rr,0,6.283);ctx.fill();
+  }
+  const hy=Math.sin(ph*1.2+8*.85)*s*.2;
+  ctx.beginPath();ctx.arc(s*.82,hy,s*.16,0,6.283);ctx.fill();
+  ctx.strokeStyle=css(INK,.6);ctx.lineWidth=Math.max(1,s*.02);ctx.lineCap='round';
+  ctx.beginPath();ctx.moveTo(s*.88,hy-s*.13);ctx.lineTo(s*.98,hy-s*.24);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(s*.94,hy-s*.07);ctx.lineTo(s*1.06,hy-s*.12);ctx.stroke();
+  ctx.fillStyle=css(VERM,.9);
+  ctx.beginPath();ctx.arc(s*.86,hy-s*.03,Math.max(1,s*.035),0,6.283);ctx.fill();
+  ctx.restore();
+}
 function drawGust(x,y,s,ph){
   const col=mode==='ink'?INK:lerpC(P.moon,[255,255,255],.4);
   ctx.strokeStyle=css(col,.75);ctx.lineCap='round';ctx.lineWidth=2;
@@ -1841,7 +1871,31 @@ function drawCharm(t,x,y,ph){
   else if(t==='big')drawGrowCharm(x,y,15,ph);
   else drawStarCharm(x,y,14,ph);
 }
-function drawPlanetI(sx,sy,R,ringed,tilt,dim,rev){
+function drawPlanetI(sx,sy,R,ringed,tilt,dim,rev,sq){
+  if(sq){                        /* square stones of the river */
+    ctx.save();ctx.translate(sx,sy);ctx.rotate(tilt*2+now*.04);
+    const h2=R*.72;
+    dot(0,0,R*1.35,TINT,(rev?.16:.25)*dim);
+    ctx.globalAlpha=dim;
+    ctx.fillStyle=rev?css(lerpC(PAPER,[255,255,255],.4),.85):css(lerpC(TINT,INK,.55),.85);
+    ctx.fillRect(-h2,-h2,h2*2,h2*2);
+    ctx.strokeStyle=css(INK,.6);ctx.lineWidth=2;
+    ctx.strokeRect(-h2,-h2,h2*2,h2*2);
+    if(rev){
+      ctx.strokeStyle=css(INK,.3);ctx.lineWidth=1.4;
+      ctx.strokeRect(-h2*.62,-h2*.62,h2*1.24,h2*1.24);
+      ctx.fillStyle=css(VERM,.8);
+      ctx.beginPath();ctx.arc(0,0,R*.1,0,6.283);ctx.fill();
+    }
+    ctx.globalAlpha=1;ctx.restore();
+    if(ringed){
+      ctx.save();ctx.translate(sx,sy);ctx.rotate(tilt);
+      ctx.strokeStyle=css(VERM,.55);ctx.lineWidth=2;
+      ctx.beginPath();ctx.ellipse(0,0,R*1.7,R*.46,0,0,6.283);ctx.stroke();
+      ctx.restore();
+    }
+    return;
+  }
   if(rev){                       /* a hollow world, pale as held breath — it pushes */
     dot(sx,sy,R*1.35,TINT,.16*dim);
     ctx.globalAlpha=dim;
@@ -1905,6 +1959,7 @@ function drawMotifs(){
     else if(b.t==='eyes')drawEyesPair(sx,sy,b.s,b.ph);
     else if(b.t==='hawk')drawHawk(sx,sy,b.s,b.ph);
     else if(b.t==='flow')drawFlow(sx,sy,b.s,b.ph);
+    else if(b.t==='serpent')drawSerpent(sx,sy,b.s,b.ph);
     else if(b.t==='weird')drawWeird(sx,sy,b.s,b.ph);
     else drawLily(sx,sy,b.s,b.ph);
   }
@@ -2092,7 +2147,7 @@ function render(){
       if(p.dead)continue;
       const sx=p.x-camX,sy=p.y-camY;
       if(sx<-p.R*3||sx>W+p.R*3||sy<-p.R*3||sy>H+p.R*3)continue;
-      drawPlanetN(sx,sy,p.R,p.col,p.ringed,p.ph,1,p.rev);
+      drawPlanetN(sx,sy,p.R,p.col,p.ringed,p.ph,1,p.rev,p.sq);
     }
     ctx.globalCompositeOperation='source-over';
     ctx.strokeStyle=css(P.moon,.055);ctx.lineWidth=1;
@@ -2227,7 +2282,7 @@ function render(){
       if(p.dead)continue;
       const sx=p.x-camX,sy=p.y-camY;
       if(sx<-p.R*3||sx>W+p.R*3||sy<-p.R*3||sy>H+p.R*3)continue;
-      drawPlanetI(sx,sy,p.R,p.ringed,p.ph,1,p.rev);
+      drawPlanetI(sx,sy,p.R,p.ringed,p.ph,1,p.rev,p.sq);
     }
     ctx.strokeStyle=css(INK,.12);ctx.lineWidth=1;
     for(const p of planets){

@@ -268,6 +268,22 @@ function drawEye(ctx,x,y,s,ph){
   }
   ctx.restore();
 }
+function drawSerpent(ctx,x,y,s,ph,TINT){
+  ctx.save();ctx.translate(x,y);
+  ctx.fillStyle=css(lerpC(TINT,INK,.55),.6);
+  for(let k=0;k<=8;k++){
+    const bx2=-s*.9+k*s*.2,by2=Math.sin(ph*1.2+k*.85)*s*.2,rr=s*(.05+.11*(k/8));
+    ctx.beginPath();ctx.arc(bx2,by2,rr,0,6.283);ctx.fill();
+  }
+  const hy=Math.sin(ph*1.2+8*.85)*s*.2;
+  ctx.beginPath();ctx.arc(s*.82,hy,s*.16,0,6.283);ctx.fill();
+  ctx.strokeStyle=css(INK,.6);ctx.lineWidth=Math.max(1,s*.02);ctx.lineCap='round';
+  ctx.beginPath();ctx.moveTo(s*.88,hy-s*.13);ctx.lineTo(s*.98,hy-s*.24);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(s*.94,hy-s*.07);ctx.lineTo(s*1.06,hy-s*.12);ctx.stroke();
+  ctx.fillStyle=css(VERM,.9);
+  ctx.beginPath();ctx.arc(s*.86,hy-s*.03,Math.max(1,s*.035),0,6.283);ctx.fill();
+  ctx.restore();
+}
 function drawJelly(ctx,x,y,s,ph){
   ctx.save();ctx.translate(x,y+Math.sin(ph)*4);
   ctx.fillStyle=css(lerpC([140,220,170],PAPER,.3),.6);
@@ -367,6 +383,7 @@ const TILES=[
  ['Sky whale','The Stone River',(c,t)=>drawWhale(c,96,84,74,t*.6,[92,90,94]),[92,90,94]],
  ['Space narwhal','The Stone River',(c,t)=>drawNarwhal(c,84,80,68,t*.6,[92,90,94]),[92,90,94]],
  ['Space manatee','The Stone River',(c,t)=>drawManatee(c,90,80,62,t*.7,[92,90,94]),[92,90,94]],
+ ['Water serpent','The Stone River',(c,t)=>drawSerpent(c,88,78,74,t*1.1,[110,92,70]),[110,92,70]],
  ['Squid visitor','The Visitors',(c,t)=>drawSquid(c,90,76,32,t*1.4),[80,116,92]],
  ['The watcher','The Visitors',(c,t)=>drawEye(c,90,78,32,t*1.1),[80,116,92]],
  ['The stranger','The Visitors',(c,t)=>drawWeird(c,90,74,34,t*1.2),[80,116,92]],

@@ -466,6 +466,10 @@ const AU={
   }
   if(Math.random()<.8)this.pluck(ch.b,{gain:.14,tau:1.1,when:t+rand(0,.15),soft:true});
   if(Math.random()<.35)this.pluck(ch.b+12,{gain:.06,tau:1.4,when:t+rand(.4,1.2),soft:true});
+  /* the harp rolls the new chord, quietly */
+  if(Math.random()<.6)
+    ch.pad.slice(0,4).forEach((m,k)=>
+      this.pluck(m+12,{harp:true,gain:.045,tau:1.1,when:t+.35+k*.11}));
  },
  swell(m,dur,vol){                      /* a soft bowed swell — planets breathe */
   if(!this.started)return;
@@ -505,15 +509,23 @@ const AU={
  pluck(m,opt){
   if(!this.started&&!this.ctx)return;
   opt=opt||{};
-  const c=this.ctx,t=opt.when||c.currentTime,f=this.f(m),vol=opt.gain||.12,tau=opt.tau||.5;
+  const c=this.ctx,t=opt.when||c.currentTime,f=this.f(m),vol=opt.gain||.12;
+  let tau=opt.tau||.5,br=1;
+  if(!opt.soft&&!opt.harp){
+    /* each region colours the solo string — ring length and brightness */
+    const rt=[[1,1],[1.35,.7],[1.1,.9],[1.2,.8],[1,1.1],[1.5,.6],
+              [.9,1.05],[.85,1.2],[1,1.3],[1.3,.75],[1.15,1.1]][regAt(camX)];
+    tau*=rt[0];br=rt[1];
+  }
   const mix=c.createGain();mix.gain.value=1;
   const pan=c.createStereoPanner?c.createStereoPanner():null;
   const head=pan||mix;if(pan){mix.connect(pan);pan.pan.value=rand(-.4,.4);}
   const dry=c.createGain();dry.gain.value=.78;head.connect(dry);dry.connect(this.master);
-  const sd=c.createGain();sd.gain.value=.45;head.connect(sd);sd.connect(this.delay);
+  const sd=c.createGain();sd.gain.value=opt.harp?.6:.45;head.connect(sd);sd.connect(this.delay);
   const sr2=c.createGain();sr2.gain.value=.5;head.connect(sr2);sr2.connect(this.conv);
   const parts=opt.soft?[[1,1,tau],[2.001,.07,.2]]
-                      :[[1,1,tau],[2.001,.3,.22],[3.004,.11,.12]];
+             :opt.harp?[[1,1,tau],[2.001,.18,.5],[2.997,.06,.25]]
+                      :[[1,1,tau],[2.001,.3*br,.22],[3.004,.11*br,.12]];
   let first=null;
   parts.forEach(pr=>{
     const o=c.createOscillator(),pg=c.createGain();
@@ -523,7 +535,7 @@ const AU={
       o.frequency.exponentialRampToValueAtTime(f,t+.09);
     }else o.frequency.value=f*pr[0];
     pg.gain.setValueAtTime(.0001,t);
-    pg.gain.exponentialRampToValueAtTime(Math.max(vol*pr[1],.0002),t+.007);
+    pg.gain.exponentialRampToValueAtTime(Math.max(vol*pr[1],.0002),t+(opt.harp?.014:.007));
     pg.gain.setTargetAtTime(.0001,t+.02,pr[2]);
     o.connect(pg);pg.connect(mix);
     o.start(t);o.stop(t+3.2);
@@ -556,7 +568,7 @@ const AU={
   }else this.pluck(s[i],{gain:v});
   if(big){                              /* a bloom draws a harp sweep */
     for(let k=1;k<5;k++)
-      this.pluck(s[Math.min(i+k,11)],{gain:.1-k*.008,when:t0+.05*k});
+      this.pluck(s[Math.min(i+k,11)],{harp:true,tau:1,gain:.1-k*.008,when:t0+.055*k});
   }
   /* the line wanders like an improviser — runs persist, sometimes it turns */
   if(Math.random()>=.7)this.melDir=-this.melDir;
@@ -577,11 +589,11 @@ const AU={
  },
  gliss(){                              /* slingshot / tailwind run */
   if(!this.started)return;const ct=this.ctx.currentTime,s=this.S();
-  for(let k=0;k<5;k++)this.pluck(s[4+k],{gain:.075,tau:.6,when:ct+k*.055});
+  for(let k=0;k<5;k++)this.pluck(s[4+k],{harp:true,gain:.075,tau:.9,when:ct+k*.055});
  },
  fanfare(){                            /* starlight! */
   if(!this.started)return;const ct=this.ctx.currentTime,s=this.S();
-  [2,4,6,8,10,11].forEach((si,k)=>this.pluck(s[si],{gain:.09,tau:.7,when:ct+k*.07}));
+  [2,4,6,8,10,11].forEach((si,k)=>this.pluck(s[si],{harp:true,gain:.09,tau:1,when:ct+k*.07}));
   this.sparkle();
  },
  captureCue(){

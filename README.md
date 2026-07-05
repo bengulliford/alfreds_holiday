@@ -33,7 +33,7 @@ new region (localStorage).
 1. **The Amber Drift** — cranes, the vermilion sun
 2. **The Glass Deep** — koi and water lilies, a silver moon
 3. **The Rose Veil** — cherry blossoms, the bloom moon *(music turns minor)*
-4. **The Violet Reach** — rising lanterns, reverse gravity, the high lantern
+4. **The Violet Undertow** — rising lanterns, reverse gravity, the high lantern
 5. **The Sea of Pandas** — pandas adrift on bamboo, the bamboo sun
 6. **Minx's Cavern** — cats, the cat-eye crescent
 7. **The Wandering Peaks** — goats patrolling floating mountains, the cold sun
